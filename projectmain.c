@@ -5,5 +5,6 @@
 
 int main(){
     printf("%d",add(5,10));
+    printf("%d",gcd(5,10));
     return 0;
 }
