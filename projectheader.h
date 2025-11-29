@@ -3,4 +3,5 @@
 
 int add(int a,int b);
 int gcd(int a,int b);
+int countdigits(int n);
 #endif

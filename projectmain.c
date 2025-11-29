@@ -4,7 +4,8 @@
 
 
 int main(){
-    printf("%d",add(5,10));
-    printf("%d",gcd(5,10));
+    printf("%d\n",add(5,10));
+    printf("%d\n",gcd(5,10));
+    printf("%d\n",countdigits(479));
     return 0;
 }
