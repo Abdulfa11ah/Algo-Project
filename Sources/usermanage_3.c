@@ -4,7 +4,3 @@
 #include "logmanage_3.h"
 #include "securityAudit_4.h"
 #include "usermanage_5.h"
-
-int main(){
-    return 0;
-}
