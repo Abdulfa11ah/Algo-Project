@@ -61,22 +61,18 @@ void addUser(struct User users[], int n){
 }
 
 void deleteuser(struct User users[], int n, char name[]){
-    int index;
-    printf("Enter the index to delete:");
-    scanf("%d", &index);
-    if (index < 0 || index >= n){
-        printf("Innvalid index.\n");
-        return;
+    int i;
+    for (i = 0; i < n; i++){
+        if(comparechars(users[i].name, name)){
+            users[i].name[0] = '\0';
+            users[i].password[0] = '\0';
+            users[i].role = 0;
+            users[i].state = 0;
+            printf("user %s deleted.\n", name);
+            return;
+        }
     }
-    if(users[index].name[0] == '\0'){
-        printf("Already empty.\n");
-        return;
-    }
-    users[index].name[0]= '\0';
-    users[index].password[0]= '\0';
-    users[index].role= 0;
-    users[index].state= 0;
-    printf("Account deleted.\n");
+    printf("user %s not found.\n", name);
 }
 
 int searchUser(struct User users[], int n, char name[]){
@@ -92,28 +88,24 @@ int searchUser(struct User users[], int n, char name[]){
 }
 
 void changepassword(struct User users[], int n, char name []){
-    int index;
-    printf("Enter user index:");
-    scanf("%d", &index);
-    if (index < 0 || index >= n){
-        printf("Innvalid index.\n");
-        return;
-    }
-    if(users[index].name[0] == '\0'){
-        printf("No account in this index.\n");
-        return;
-    }
-    char newpassword[20];
-    printf("Enter new password:");
-    scanf("%19s", newpassword);
     int i;
-    i =0;
-    while(newpassword[i] != '\0' && i < 19){
-        users[index].password[i]=newpassword[i];
-        i++;
+    char newpass[20];
+    for (i = 0 ; i < n ; i++){
+        if(comparechars(users[i].name, name)){
+            printf("Enter new password for user %s:", name);
+            scanf("%19s", newpass);
+            users[i].password[0] = '\0';
+            int j = 0;
+            while (newpass[j] != '\0'){
+                users[i].password[j] = newpass[j];
+                j++;
+            }
+            users[i].password[j] = '\0';
+            printf("Password changed for user %s.\n", name);
+            return;
+        }
     }
-    users[index].password[i] = '\0';
-    printf("Password updated.");
+    printf("user %s not found.\n", name);
 }
 
 int checklogin(struct User users[], int n, char name[], char pass[]){
@@ -145,51 +137,37 @@ int strongpassword(char pass[]){
 }
 
 void blockuser(struct User users[], int n, char name[]){
-    int index;
-    printf("Enter user index to block:");
-    scanf("%d", &index);
-    if (index < 0 || index >= n){
-        printf("Innvalid index.\n");
+    printf("Enter user name to block:");
+    scanf("%19s", name);
+    if(comparechars(users[i].name, name)){
+        users[i].state = 1;
+        printf("User %s blocked.\n", name);
         return;
     }
-    if(users[index].name[0] == '\0'){
-        printf("No account in this index.\n");
-        return;
-    }
-    users[index].state = 1;
-    printf("User %s blocked.\n", users[index].name);
+    printf("User %s not found.\n", name);
 }
 
 void unblockuser(struct User users[], int n, char name[]){
-    int index;
-    printf("Enter user index to unblock:");
-    scanf("%d", &index);
-    if (index < 0 || index >= n){
-        printf("Innvalid index.\n");
+    printf("Enter user name to unblock:");
+    scanf("%19s", name);
+    if(comparechars(users[i].name, name)){
+        users[i].state = 0;
+        printf("User %s unblocked.\n", name);
         return;
     }
-    if(users[index].name[0] == '\0'){
-        printf("No account in this index.\n");
-        return;
-    }
-    users[index].state = 0;
-    printf("User %s unblocked.\n", users[index].name);
+    printf("User %s not found.\n", name);
 }
 
 void changerole(struct User users[], int n, char name[], int role){
-    int index;
-    printf("Enter user index to change role:");
-    scanf("%d", &index);
-    if (index < 0 || index >= n){
-        printf("Innvalid index.\n");
-        return;
+    int i;
+    for (i = 0 ; i < n ; i++){
+        if(comparechars(users[i].name, name)){
+            users[i].role = role;
+            printf("User %s role changed to %d.\n", name, role);
+            return;
+        }
     }
-    if(users[index].name[0] == '\0'){
-        printf("No account in this index.\n");
-        return;
-    }
-    users[index].role = role;
-    printf("User %s role changed to %d.\n", users[index].name, role);
+    printf("user %s not found.\n", name);
 }
 
 void listadmins(struct User users[], int n){
