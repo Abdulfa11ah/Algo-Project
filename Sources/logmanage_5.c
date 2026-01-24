@@ -5,13 +5,6 @@
 #include "securityAudit_4.h"
 #include "usermanage_5.h"
 
-struct Log {
-    char user[20];
-    char action[50];
-    char date[20];
-    char time[10];
-    int code; // 0 info, 1 warning, 2 error
-};
 
 int comparechars(char a[], char b[]){
     int i = 0;
