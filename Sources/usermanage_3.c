@@ -87,7 +87,7 @@ int searchUser(struct User users[], int n, char name[]){
     return -1;
 }
 
-void changepassword(struct User users[], int n, char name []){
+void changepassword(struct User users[], int n, char name[]){
     int i;
     char newpass[20];
     for (i = 0 ; i < n ; i++){
@@ -139,10 +139,12 @@ int strongpassword(char pass[]){
 void blockuser(struct User users[], int n, char name[]){
     printf("Enter user name to block:");
     scanf("%19s", name);
-    if(comparechars(users[i].name, name)){
-        users[i].state = 1;
-        printf("User %s blocked.\n", name);
-        return;
+    for (int i = 0 ; i < n ; i++){
+        if(comparechars(users[i].name, name)){
+            users[i].state = 1;
+            printf("User %s blocked.\n", name);
+            return;
+        }
     }
     printf("User %s not found.\n", name);
 }
@@ -150,10 +152,12 @@ void blockuser(struct User users[], int n, char name[]){
 void unblockuser(struct User users[], int n, char name[]){
     printf("Enter user name to unblock:");
     scanf("%19s", name);
-    if(comparechars(users[i].name, name)){
-        users[i].state = 0;
-        printf("User %s unblocked.\n", name);
-        return;
+    for (int i = 0 ; i < n ; i++){
+        if(comparechars(users[i].name, name)){
+            users[i].state = 0;
+            printf("User %s unblocked.\n", name);
+            return;
+        }
     }
     printf("User %s not found.\n", name);
 }
