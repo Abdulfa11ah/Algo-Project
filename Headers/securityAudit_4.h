@@ -1,7 +1,6 @@
 #ifndef SECURITYAUDIT_4_H
 #define SECURITYAUDIT_4_H
 
-/* declarations here */
 
 int countUppercase(char text[]);
 int countLowercase(char text[]);
