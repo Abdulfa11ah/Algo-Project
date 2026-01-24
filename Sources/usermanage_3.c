@@ -1,280 +1,267 @@
-#include<stdio.h>
-#include "endecryption_1.h"
-#include "mathsecurity_2.h"
-#include "logmanage_3.h"
-#include "securityAudit_4.h"
-#include "usermanage_5.h"
+#include <stdio.h>
+#include <string.h>
+#include "UserMan.h"
 
-struct User {
-    char name[20];
-    char password[20];
-    int role; // 0: user, 1: admin
-    int state; // 0: active, 1: blocked
-};
 
-int comparechars(char a[], char b[]){
-    int i;
-    i = 0;
-    while (a[i] == b[i]){
-        if(a[i] == '\0' && b[i] =='\0'){
-            return 1;
-            i++;
-        }
-    }
-    return 0;
+   // Initializes user list
+ void initUsers(struct User users[], int n){
+     for (int i = 0; i < n; i++){
+         strcpy(users[i].name, "");
+         strcpy(users[i].password , "");
+         users[i].role  =  0  ;
+         users[i].state =  2  ;
+ }
 }
-
-void initUsers(struct User users[], int n){
-    for (int i = 0; i < n; i++) {
-        users[i].role = 0;
-        users[i].state = 0;
-    }
-}
-
-void displayUsers(struct User users[], int n){
-    for (int i = 0; i < n; i++) {
-        printf("User: %s , Password: %s, Role: %d, State: %d\n", users[i].name, users[i].password, users[i].role, users[i].state);
-    }
-}
-
-void addUser(struct User users[], int n){
-    int pos = -1;
-    for (int i = 0; i < n; i++) {
-        if (users[i].name[0] == '\0') {
-            pos = i;
-            break;
-        }
-    }
-    if (pos == -1) {
-        printf("No space to add new user.\n");
-        return;
-    }
-    printf("Add new user username:");
-    scanf("%19s", users[pos].name);
-    printf("enter password:");
-    scanf("%19s", users[pos].password);
-    printf("Enter role (0 for user, 1 for admin):");
-    scanf("%d", &users[pos].role);
-    printf("enter state (0 for active, 1 for blocked):");
-    scanf("%d", &users[pos].state);
-    printf("user added at position %d .", pos);
-}
-
-void deleteuser(struct User users[], int n, char name[]){
-    int i;
-    for (i = 0; i < n; i++){
-        if(comparechars(users[i].name, name)){
-            users[i].name[0] = '\0';
-            users[i].password[0] = '\0';
-            users[i].role = 0;
-            users[i].state = 0;
-            printf("user %s deleted.\n", name);
-            return;
-        }
-    }
-    printf("user %s not found.\n", name);
-}
-
-int searchUser(struct User users[], int n, char name[]){
-    int i;
-    for (i = 0; i < n; i++){
-        if(comparechars(users[i].name, name)){
-            printf("user found at index %d\n", i);
-            return i;
-        }
-    }
-    printf("user not found.\n");
-    return -1;
-}
-
-void changepassword(struct User users[], int n, char name[]){
-    int i;
-    char newpass[20];
-    for (i = 0 ; i < n ; i++){
-        if(comparechars(users[i].name, name)){
-            printf("Enter new password for user %s:", name);
-            scanf("%19s", newpass);
-            users[i].password[0] = '\0';
-            int j = 0;
-            while (newpass[j] != '\0'){
-                users[i].password[j] = newpass[j];
-                j++;
+    // Display all users
+    void displayUsers(struct User users[], int n){
+       printf("Users list : ");
+       for (int i = 0 ; i < n ; i++ ){
+         if (strcmp(users[i].name , "") != 0  ){
+             printf("Name =%s ", users[i].name);
+             printf("Role =%d ", users[i].role);
+             printf("State =%d \n", users[i].state);
             }
-            users[i].password[j] = '\0';
-            printf("Password changed for user %s.\n", name);
+       }
+    }
+    // Add a new user
+    void addUser(struct User users[], int n) {
+    printf("Enter information of new user:\n");
+
+    for (int i = 0; i < n; i++) {
+        if (users[i].state == EMPTY2 ) { // empty slot
+            printf("Name: ");
+            scanf("%19s", users[i].name);
+
+            printf("Password: ");
+            scanf("%19s", users[i].password);
+
+            do {
+                printf("Role (0: user, 1: admin): ");
+                scanf("%d", &users[i].role);
+            } while (users[i].role != 0 && users[i].role != 1);
+
+            users[i].state = ACTIVE; // active
+            printf("User added successfully.\n");
             return;
         }
     }
-    printf("user %s not found.\n", name);
+    printf("User list is full.\n");
 }
-
-int checklogin(struct User users[], int n, char name[], char pass[]){
-    int i;
-    for (i = 0 ; i < n ; i++){
-        if(users[i].name[0 == '\0'])continue;
-        if (comparechars(users[i].name, name) && comparechars(users[i].password, pass)){
-            printf("Login successful for user %s \n", name );
-            return 1;
-        }   
+  // Delete a user by name
+   void deleteUser(struct User users [] , int n , char name []){
+        printf("Enter name of user to delete: ");
+        scanf("%19s", name);
+        for (int i = 0 ; i < n ; i++ ){
+            if (strcmp(users[i].name , name) == 0  ){
+                strcpy(users[i].name , "");
+                strcpy(users[i].password , "");
+                users[i].role  =  0  ;
+                users[i].state =  EMPTY2  ;
+                printf("User %s deleted successfully.\n", name);
+                return;
+            }
+        }
+   }
+   // Search for a user by name
+    int searchUser(struct User users [] , int n , char name []){
+        for (int i = 0 ; i < n ; i++ ){
+            if (strcmp(users[i].name , name )==0){
+                printf("User found : name = %s , password = %s, role = %d , state = %d\n",
+                            users[i].name , users[i].password , users[i].role , users[i].state) ;
+                return i; // Return index of found user
+                }
+            }
+                printf("User %s not found.\n", name);
+                return -1; // Return -1 if user not found       
     }
-    printf("Login failed for user %s\n", name);
-    return 0;
+
+    // Change password for a user by name
+    void changePassword(struct User users [] , int n , char name []){
+         int index = searchUser(users,n,name);
+         if (index != -1) {
+            printf("Enter new password for user %s  : ",users[index].name);
+            scanf("%19s", users[index].password);
+            printf("Password changed successfully for user %s.\n", users[index].name);
+        } else {
+            printf("User %s not found. Cannot change password.\n", name);
+         }
+    }
+    // verify login credentials
+int checkLogin(struct User users[], int n, char name[], char pass[]) {
+    for (int i = 0; i < n; i++) {
+        if (strcmp(users[i].name, name) == 0 &&
+            strcmp(users[i].password, pass) == 0) {
+            return 1;   // login successful
+        }
+    }
+    return 0;   // login failed
 }
-
-int strongpassword(char pass[]){
-    int i;
-    int hasUpper = 0, hasLower = 0, hasDigit = 0, hasSpecial = 0;
-    for (i = 0; pass[i] != '\0'; i++){
-        if (pass[i] >= 'A' && pass[i] <= 'Z') hasUpper = 1;
-        else if (pass[i] >= 'a' && pass[i] <= 'z') hasLower = 1;
-        else if (pass[i] >= '0' && pass[i] <= '9') hasDigit = 1;
-        else hasSpecial = 1;
+// Check if password is strong
+ int strongPassword(char pass[]){
+    int hasUpper = 0  , hasLower = 0 , hasNumber  = 0 , hasSymbol = 0 ;
+    int Length = strlen(pass) ;
+    if (Length < 8 ) return 0 ;
+    for (int i = 0 ; i < Length ; i++ ){
+        if (pass[i] >= 'A' && pass[i] <= 'Z') 
+        hasUpper = 1 ;
+        else if (pass[i] >= 'a' && pass[i] <= 'z') 
+        hasLower = 1 ;
+        else if (pass[i] >= '0' && pass[i] <= '9') 
+        hasNumber = 1 ;
+        else 
+        hasSymbol = 1 ;
     }
-    if (hasUpper && hasLower && hasDigit && hasSpecial && i >= 8){
+    if (hasUpper * hasLower * hasNumber * hasSymbol != 0)
         return 1;
-    }
-    return 0;
+    else
+        return 0;
 }
-
-void blockuser(struct User users[], int n, char name[]){
-    printf("Enter user name to block:");
-    scanf("%19s", name);
+// Block a user by name 
+void blockUser(struct User users[], int n, char name[]){
+    int index = searchUser(users , n , name);
+    if (index != -1) {
+        users[index].state = BLOCKED ;
+        printf("User %s blocked successfully.\n", name);
+    } else {
+        printf("User %s not found. Cannot block user.\n", name);
+    }
+}
+// Unblock a user by name
+void unblockUser(struct User users[], int n, char name[]){
+    int index = searchUser(users , n , name);
+    if (index != -1) {
+        users[index].state = ACTIVE ;
+        printf("User %s unblocked successfully.\n", name);
+    } else {
+        printf("User %s not found. Cannot unblock user.\n", name);
+    }
+}
+// Change role of a user by name
+void changeRole(struct User users[], int n, char name[], int newRole) {
+    int index = searchUser (users , n , name);
+    if (index == -1) {
+        printf("User %s not found.\n", name);
+        return;
+    }
+    if (index != -1) {
+        if (users[index].role ==  USER && newRole == ADMIN || users[index].role == ADMIN && newRole == USER ) {
+            users[index].role = newRole ;
+            printf("User %s role changed successfully to %d.\n", name, newRole);
+        } else {
+            printf("Invalid role change for user %s.\n", name);
+        }
+    }
+}
+// List all admin users
+void listAdmins(struct User users [] , int n ){
+    printf("Admin users List : ");
     for (int i = 0 ; i < n ; i++){
-        if(comparechars(users[i].name, name)){
-            users[i].state = 1;
-            printf("User %s blocked.\n", name);
-            return;
-        }
-    }
-    printf("User %s not found.\n", name);
-}
-
-void unblockuser(struct User users[], int n, char name[]){
-    printf("Enter user name to unblock:");
-    scanf("%19s", name);
-    for (int i = 0 ; i < n ; i++){
-        if(comparechars(users[i].name, name)){
-            users[i].state = 0;
-            printf("User %s unblocked.\n", name);
-            return;
-        }
-    }
-    printf("User %s not found.\n", name);
-}
-
-void changerole(struct User users[], int n, char name[], int role){
-    int i;
-    for (i = 0 ; i < n ; i++){
-        if(comparechars(users[i].name, name)){
-            users[i].role = role;
-            printf("User %s role changed to %d.\n", name, role);
-            return;
-        }
-    }
-    printf("user %s not found.\n", name);
-}
-
-void listadmins(struct User users[], int n){
-    printf("List of admin users:\n");
-    for (int i = 0; i < n; i++) {
-        if (users[i].role == 1 && users[i].name[0] != '\0') {
-            printf("Admin User: %s , Password: %s, State: %d\n", users[i].name, users[i].password, users[i].state);
+        if (users[i].role == ADMIN && users[i].state != EMPTY2){
+            printf("Name = %s", users[i].name);
+            printf(" Password = %s", users[i].password);
+            printf(" State = %d\n", users[i].state);
+            
         }
     }
 }
-
-int stringlength(char str[]){
-    int i = 0;
-    while (str[i] != '\0'){
-        i++;
+ // string Length 
+    int stringLength(char str[]){
+     int Length = 0 ;
+     while (str[Length] != '\0'){
+        Length++ ;
+     }
+      return Length ;
     }
-    return i;
+  // checks for Uppercase
+   int containsUppercase(char str[]) {
+    int Length = stringLength(str);
+
+    for (int i = 0; i < Length; i++) {
+        if (str[i] >= 'A' && str[i] <= 'Z') {
+            return 1;  // Uppercase found
+        }
+    }
+    return 0;  // No uppercase found
 }
+ // checks for Lowercase
    
-int containsuppercase(char str[]){
-    int i = 0;
-    while (str[i] != '\0'){
-        if (str[i] >= 'A' && str[i] <= 'Z'){
-            return 1;
-        }
-        i++;
-    }
-    return 0;
-}
+       int containsLowercase(char str[]) {
+    int Length = stringLength(str);
 
-int containslowercase(char str[]){
-    int i = 0;
-    while (str[i] != '\0'){
-        if (str[i] >= 'a' && str[i] <= 'z'){
-            return 1;
+    for (int i = 0; i < Length; i++) {
+        if (str[i] >= 'a' && str[i] <= 'z') {
+            return 1;  // Uppercase found
         }
-        i++;
     }
-    return 0;
-}
+    return 0;  // No uppercase found
+} 
 
-int containsdigit(char str[]){
-    int i = 0;
-    while (str[i] != '\0'){
-        if (str[i] >= '0' && str[i] <= '9'){
-            return 1;
+ // checks for Digit
+    int containsDigits(char str[]) {
+    int Length = stringLength(str);
+
+    for (int i = 0; i < Length; i++) {
+        if (str[i] >= '0' && str[i] <= '9') {
+            return 1;  // Uppercase found
         }
-        i++;
     }
-    return 0;
+    return 0;  // No uppercase found
 }
-
-int containspecialsymbol(char str[]){
-    int i = 0;
-    while (str[i] != '\0'){
-        if ((str[i] >= 33 && str[i] <= 47) || (str[i] >= 58 && str[i] <= 64) ||
-            (str[i] >= 91 && str[i] <= 96) || (str[i] >= 123 && str[i] <= 126)){
-            return 1;
+ // checks for Symbol
+    int containsSymbol(char str[]){
+        int Length = stringLength(str)  ; 
+        for (int i = 0 ; i < Length ; i++){
+            if ( (str[i] >= 33 && str[i] <= 47) || (str[i] >=58 && str[i] <=64) ||
+                 (str[i] >=91 && str[i] <=96) || (str[i] >=123 && str[i] <=126) )
+            return 1 ; 
         }
-        i++;
-    }
-    return 0;
+       
+        return 0;
 }
-
-void userstatistics(struct User users[], int n){
-    int totalUsers = 0, activeUsers = 0, blockedUsers = 0, adminUsers = 0;
-    for (int i = 0; i < n; i++) {
-        if (users[i].name[0] != '\0') {
-            totalUsers++;
-            if (users[i].state == 0) {
-                activeUsers++;
-            } else {
-                blockedUsers++;
-            }
-            if (users[i].role == 1) {
-                adminUsers++;
+// Display user statistics 
+    void userStatistics(struct User users [] , int n ){
+        int totalUsers = 0 , blockUsers = 0 , adminUsers = 0 ;
+        for (int i = 0 ; i < n ; i++){
+            if (users[i].state != EMPTY2){
+                totalUsers++ ;
+                if (users[i].state == BLOCKED)
+                blockUsers++ ;
+                if (users[i].role == ADMIN)
+                adminUsers++ ;
             }
         }
+        printf("Total users: %d\n", totalUsers);
+        printf("Blocked users: %d\n", blockUsers);
+        printf("Admin users: %d\n", adminUsers);
     }
-    printf("Total Users: %d\n", totalUsers);
-    printf("Active Users: %d\n", activeUsers);
-    printf("Blocked Users: %d\n", blockedUsers);
-    printf("Admin Users: %d\n", adminUsers);
-}
+    // Save users to file
+    void saveUsers(struct User users[], int n) {
+        FILE *file = fopen("users.txt", "w");
+        if (file == NULL) {
+            printf("Error opening file for writing.\n");
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            if (users[i].state != EMPTY2) {
+                fprintf(file, "%s %s %d %d\n", users[i].name, users[i].password, users[i].role, users[i].state);
+            }
+        }
+        fclose(file);
+        printf("Users saved to file successfully.\n");
+    }
+    // Load users from file
+    void loadUsers(struct User users[], int n) {
+         FILE *file = fopen("users.txt", "r");
+        if (file == NULL) {
+            printf("Error opening file for reading.\n");
+            return;
+        }
+        for (int i = 0 ; i < n ; i++){
+          if (fscanf(file, "%19s %19s %d %d", users[i].name, users[i].password, &users[i].role, &users[i].state) != 4) {
+                break; // Stop if we can't read a full user record
+            }
+        }
+        fclose(file);
+        printf("Users loaded from file successfully.\n");
+    }
 
-void saveUsers(struct User users[], int n){
-    FILE *file = fopen("users.dat", "wb");
-    if (file == NULL) {
-        printf("Error opening file for writing.\n");
-        return;
-    }
-    fwrite(users, sizeof(struct User), n, file);
-    fclose(file);
-    printf("Users saved to users.dat\n");
-}
-
-void loadUsers(struct User users[], int n){
-    FILE *file = fopen("users.dat", "rb");
-    if (file == NULL) {
-        printf("Error opening file for reading.\n");
-        return;
-    }
-    fread(users, sizeof(struct User), n, file);
-    fclose(file);
-    printf("Users loaded from users.dat\n");
-}
