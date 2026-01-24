@@ -1,7 +1,6 @@
 #ifndef LOGMANAGE_5_H
 #define LOGMANAGE_5_H
 
-/* declarations here */
 struct Log{
     char user[20];
     char action[50];
