@@ -1,10 +1,9 @@
-#include<stdio.h>
 #include "endecryption_1.h"
 #include "mathsecurity_2.h"
 #include "logmanage_3.h"
 #include "securityAudit_4.h"
 #include "usermanage_5.h"
-
+#include<string.h>
 
 int comparechars(char a[], char b[]){
     int i = 0;
@@ -182,22 +181,113 @@ float errorRate(struct Log logs[], int n){
     return ((float)errorLogs / totalLogs) * 100;
 }
 
-void exportLogsCSV(struct Log logs[], int n){
-    const char* filename = "exported_logs.csv";
+void exportLogsCSV(struct Log logs[], int count) {
+    const char* filename = "logs_export.csv";
     FILE* file = fopen(filename, "w");
-    if (file == NULL){
-        printf("Error opening file %s for writing.\n", filename);
+    
+    if (file == NULL) {
+        printf("Error: Could not create file %s\n", filename);
         return;
     }
+    
+    fprintf(file, "ID,Timestamp,Level,Source,Message\n");
+    
+    for (int i = 0; i < count; i++) {
+        int needs_quotes = 0;
+        if (strchr(logs[i].message, ',') != NULL || 
+            strchr(logs[i].message, '"') != NULL ||
+            strchr(logs[i].message, '\n') != NULL) {
+            needs_quotes = 1;
+        }
+        
+        if (needs_quotes) {
+            fprintf(file, "%d,%s,%s,%s,\"", 
+                    logs[i].id,
+                    logs[i].timestamp,
+                    logs[i].level,
+                    logs[i].source);
+            
+            for (int j = 0; logs[i].message[j] != '\0'; j++) {
+                if (logs[i].message[j] == '"') {
+                    fputc('"', file);
+                    fputc('"', file);
+                } else {
+                    fputc(logs[i].message[j], file);
+                }
+            }
+            
+            fprintf(file, "\"\n");
+        } else {
+            fprintf(file, "%d,%s,%s,%s,%s\n",
+                    logs[i].id,
+                    logs[i].timestamp,
+                    logs[i].level,
+                    logs[i].source,
+                    logs[i].message);
+        }
+    }
+    
+    fclose(file);
+    printf("Exported %d logs to %s\n", count, filename);
 }
 
-void importLogsCSV(struct Log logs[], int n){
-    const char* filename = "imported_logs.csv";
+void importLogsCSV(struct Log logs[], int max_count) {
+    const char* filename = "logs_export.csv";
     FILE* file = fopen(filename, "r");
-    if (file == NULL){
-        printf("Error opening file %s for reading.\n", filename);
+    
+    if (file == NULL) {
+        printf("Error: Could not open file %s\n", filename);
         return;
     }
+    
+    char line[1024];
+    
+    fgets(line, sizeof(line), file);
+    
+    int index = 0;
+    while (fgets(line, sizeof(line), file) && index < max_count) {
+        char* fields[5];
+        int field_count = 0;
+        char* ptr = line;
+        
+        while (*ptr && field_count < 5) {
+            if (*ptr == '"') {
+                ptr++;
+                char* start = ptr;
+                while (*ptr) {
+                    if (*ptr == '"' && *(ptr + 1) == '"') ptr += 2;
+                    else if (*ptr == '"') break;
+                    else ptr++;
+                }
+                *ptr = '\0';
+                fields[field_count++] = start;
+                ptr += 2;
+            } else {
+                char* start = ptr;
+                while (*ptr && *ptr != ',' && *ptr != '\n') ptr++;
+                char separator = *ptr;
+                *ptr = '\0';
+                fields[field_count++] = start;
+                ptr++;
+            }
+        }
+        
+        if (field_count >= 1) logs[index].id = atoi(fields[0]);
+        if (field_count >= 2) strncpy(logs[index].timestamp, fields[1], 19);
+        if (field_count >= 3) strncpy(logs[index].level, fields[2], 9);
+        if (field_count >= 4) strncpy(logs[index].source, fields[3], 49);
+        if (field_count >= 5) strncpy(logs[index].message, fields[4], 255);
+        
+        logs[index].timestamp[19] = '\0';
+        logs[index].level[9] = '\0';
+        logs[index].source[49] = '\0';
+        logs[index].message[255] = '\0';
+        
+        index++;
+    }
+    
+    fclose(file);
+    printf("Imported %d logs from %s\n", index, filename);
 }
    
 void clearLogs(struct Log logs[], int n){
@@ -220,13 +310,91 @@ void recentLogs(struct Log logs[], int n, int nb){
     }
 }
 
-void archiveLogs(struct Log logs[], int n){
-    const char* filename = "archived_logs.dat";
-    FILE* file = fopen(filename, "wb");
-    if (file == NULL){
-        printf("Error opening file %s for writing.\n", filename);
+void archiveLogs(struct Log logs[], int count, int days) {
+    const char* archive_filename = "logs_archive.csv";
+    const char* current_filename = "logs_current.csv";
+    
+    FILE* archive_file = fopen(archive_filename, "a");
+    if (archive_file == NULL) {
+        printf("Error: Could not open archive file %s\n", archive_filename);
         return;
     }
+    
+    FILE* current_file = fopen(current_filename, "w");
+    if (current_file == NULL) {
+        printf("Error: Could not create current file %s\n", current_filename);
+        fclose(archive_file);
+        return;
+    }
+    
+    if (ftell(archive_file) == 0) {
+        fprintf(archive_file, "ID,Timestamp,Level,Source,Message\n");
+    }
+    
+    fprintf(current_file, "ID,Timestamp,Level,Source,Message\n");
+    
+    time_t current_time = time(NULL);
+    struct tm* time_info = localtime(&current_time);
+    time_info->tm_mday -= days;
+    time_t cutoff_time = mktime(time_info);
+    
+    int archived_count = 0;
+    int current_count = 0;
+    
+    for (int i = 0; i < count; i++) {
+        struct tm log_time;
+        memset(&log_time, 0, sizeof(struct tm));
+        sscanf(logs[i].timestamp, "%d-%d-%d %d:%d:%d",
+               &log_time.tm_year, &log_time.tm_mon, &log_time.tm_mday,
+               &log_time.tm_hour, &log_time.tm_min, &log_time.tm_sec);
+        log_time.tm_year -= 1900;
+        log_time.tm_mon -= 1;
+        time_t log_timestamp = mktime(&log_time);
+        
+        if (log_timestamp < cutoff_time) {
+            if (strchr(logs[i].message, ',') != NULL || 
+                strchr(logs[i].message, '"') != NULL) {
+                fprintf(archive_file, "%d,%s,%s,%s,\"", 
+                        logs[i].id,
+                        logs[i].timestamp,
+                        logs[i].level,
+                        logs[i].source);
+                
+                for (int j = 0; logs[i].message[j] != '\0'; j++) {
+                    if (logs[i].message[j] == '"') {
+                        fputc('"', archive_file);
+                        fputc('"', archive_file);
+                    } else {
+                        fputc(logs[i].message[j], archive_file);
+                    }
+                }
+                
+                fprintf(archive_file, "\"\n");
+            } else {
+                fprintf(archive_file, "%d,%s,%s,%s,%s\n",
+                        logs[i].id,
+                        logs[i].timestamp,
+                        logs[i].level,
+                        logs[i].source,
+                        logs[i].message);
+            }
+            archived_count++;
+        } else {
+            fprintf(current_file, "%d,%s,%s,%s,%s\n",
+                    logs[i].id,
+                    logs[i].timestamp,
+                    logs[i].level,
+                    logs[i].source,
+                    logs[i].message);
+            current_count++;
+        }
+    }
+    
+    fclose(archive_file);
+    fclose(current_file);
+    
+    printf("Archived %d logs older than %d days to %s\n", archived_count, days, archive_filename);
+    printf("Kept %d recent logs in %s\n", current_count, current_filename);
 }
 
 void showTopErrors(struct Log logs[], int n){
