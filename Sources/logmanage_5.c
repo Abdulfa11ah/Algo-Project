@@ -7,22 +7,7 @@
 #include<string.h>
 
 
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
 
-
-#define MAX_MESSAGE_LENGTH 100
-#define LOG_DB_SIZE 1000
-
-struct Log{
-    char user[20];
-    char action[50];
-    char date[20];
-    char time[10];
-    int code; // 0 info, 1 warning, 2 error
-
-};
 
 
 
