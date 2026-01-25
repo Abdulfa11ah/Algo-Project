@@ -6,12 +6,7 @@
 #include<stdio.h>
 #include<string.h>
 
-
-
-
-
-
-void initLogs(struct Log logs[], int n){
+oid initLogs(struct Log logs[], int n){
     for (int i = 0; i < n; i++){
         logs[i].user[0] = '\0';
         logs[i].action[0] = '\0';
@@ -166,20 +161,21 @@ void sortLogsByUser(struct Log logs[], int n)
 int detectSuspiciousActivity(struct Log logs[], int n, char user[])
 {
     int i;
-    int count = 0;
+    int loginCount = 0;
 
     for (i = 0; i < n; i++) {
-        if (logs[i].user == 1 && strcmp(logs[i].user, user) == 0) {
-            /* Suspicious if blocked or error login */
-            if ((strcmp(logs[i].action, "Blocked") == 0) ||
-                (strcmp(logs[i].action, "Login") == 0 && logs[i].code >= 400)) 
-            {
-                count++;
-            }
+        if (logs[i].user[0] != '\0' && strcmp(logs[i].user, user) == 0 &&
+            strcmp(logs[i].action, "Login") == 0) {
+            loginCount++;
         }
     }
 
-    return count;
+    // If more than 5 logins found, consider it suspicious
+    if (loginCount > 5) {
+        return 1; // suspicious
+    } else {
+        return 0; // not suspicious
+    }
 }
 
 int dailyConnections(struct Log logs[], int n, char date[])
@@ -363,3 +359,7 @@ void showTopErrors(struct Log logs[], int n)
         printf("%s - %d occurrences\n", errorCounts[i].errorMsg, errorCounts[i].count);
     }
 }
+
+
+
+
